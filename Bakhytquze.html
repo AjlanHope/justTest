@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار اللغة الإنجليزية - المستوى الثاني</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
+        .ltr-text { direction: ltr; text-align: left; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 md:p-8" id="quiz-container">
+        <!-- شاشة البداية -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-3xl font-bold text-blue-600 mb-4">اختبار اللغة الإنجليزية تفاعلي</h1>
+            <p class="text-gray-600 mb-6 text-lg">المستوى الثاني (A2) - 50 سؤال منوع (قواعد، مفردات، كتابة)</p>
+            <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 w-full md:w-auto">
+                ابدأ الاختبار الآن
+            </button>
+        </div>
+
+        <!-- شاشة الأسئلة -->
+        <div id="question-screen" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-sm font-semibold text-gray-500" id="question-counter">سؤال 1 من 50</span>
+                <span class="text-sm font-semibold text-green-500" id="score-counter">النقاط: 0</span>
+            </div>
+            
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+
+            <h2 id="question-text" class="text-xl md:text-2xl font-bold mb-6 ltr-text text-gray-800"></h2>
+
+            <div id="options-container" class="space-y-3 ltr-text">
+                <!-- سيتم إدراج الخيارات هنا عبر الجافاسكريبت -->
+            </div>
+
+            <div id="feedback" class="mt-4 font-bold text-lg hidden text-center"></div>
+
+            <button id="next-btn" onclick="nextQuestion()" class="mt-6 bg-gray-400 text-white font-bold py-3 px-6 rounded-lg w-full transition duration-300 hidden" disabled>
+                السؤال التالي
+            </button>
+        </div>
+
+        <!-- شاشة النتيجة النهائية -->
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">اكتمل الاختبار!</h2>
+            <p class="text-xl mb-6">نتيجتك هي: <span id="final-score" class="font-bold text-blue-600 text-3xl"></span> من 50</p>
+            <p id="result-message" class="text-lg font-medium mb-8 text-gray-600"></p>
+            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
+                إعادة الاختبار
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            // أسئلة اختيار من متعدد (قواعد ومفردات)
+            { type: 'mcq', q: '1. She _____ to the supermarket yesterday.', options: ['goes', 'go', 'went', 'going'], ans: 'went' },
+            { type: 'mcq', q: '2. I have _____ working here for a year.', options: ['be', 'been', 'being', 'was'], ans: 'been' },
+            { type: 'mcq', q: '3. He is _____ than his brother.', options: ['tall', 'tallest', 'taller', 'more tall'], ans: 'taller' },
+            { type: 'mcq', q: '4. We don\'t have _____ milk left in the fridge.', options: ['some', 'any', 'many', 'a'], ans: 'any' },
+            { type: 'mcq', q: '5. _____ does this jacket cost?', options: ['How many', 'How much', 'How long', 'How often'], ans: 'How much' },
+            { type: 'mcq', q: '6. Look! They _____ TV right now.', options: ['watch', 'watched', 'are watching', 'watches'], ans: 'are watching' },
+            { type: 'mcq', q: '7. If it rains tomorrow, I _____ home.', options: ['will stay', 'stayed', 'staying', 'stays'], ans: 'will stay' },
+            { type: 'mcq', q: '8. The keys are _____ the table.', options: ['in', 'on', 'at', 'under'], ans: 'on' },
+            { type: 'mcq', q: '9. I look forward to _____ you soon.', options: ['see', 'saw', 'seeing', 'seen'], ans: 'seeing' },
+            { type: 'mcq', q: '10. She usually _____ up at 7 AM.', options: ['wake', 'waking', 'wakes', 'woke'], ans: 'wakes' },
+            { type: 'mcq', q: '11. Have you _____ visited Paris?', options: ['never', 'ever', 'yet', 'just'], ans: 'ever' },
+            { type: 'mcq', q: '12. My new car is _____ than my old one.', options: ['fast', 'faster', 'fastest', 'more fast'], ans: 'faster' },
+            { type: 'mcq', q: '13. He _____ to school yesterday because he was sick.', options: ['didn\'t go', 'doesn\'t go', 'not go', 'didn\'t went'], ans: 'didn\'t go' },
+            { type: 'mcq', q: '14. I am interested _____ learning new languages.', options: ['on', 'at', 'in', 'with'], ans: 'in' },
+            { type: 'mcq', q: '15. Where _____ that beautiful shirt?', options: ['you bought', 'did you buy', 'do you buy', 'did you bought'], ans: 'did you buy' },
+            
+            // أسئلة صح وخطأ
+            { type: 'tf', q: '16. The word "Quickly" is an adjective.', ans: 'false', hint: 'It is an adverb.' },
+            { type: 'tf', q: '17. The plural form of "child" is "children".', ans: 'true' },
+            { type: 'tf', q: '18. We use "an" before the word "university".', ans: 'false', hint: 'University starts with a "Y" sound, so we use "a".' },
+            { type: 'tf', q: '19. The sentence "He don\'t like apples" is grammatically correct.', ans: 'false', hint: 'It should be "He doesn\'t like".' },
+            { type: 'tf', q: '20. "Bigger" is a comparative adjective.', ans: 'true' },
+            { type: 'tf', q: '21. The past tense of the verb "read" is written the same way: "read".', ans: 'true' },
+            { type: 'tf', q: '22. The phrase "I am agree" is correct in English.', ans: 'false', hint: 'It should be "I agree".' },
+            { type: 'tf', q: '23. The plural of "mouse" is "mouses".', ans: 'false', hint: 'The plural is "mice".' },
+            { type: 'tf', q: '24. We use the preposition "at" for specific times (e.g., at 5 PM).', ans: 'true' },
+            { type: 'tf', q: '25. The opposite of "always" is "sometimes".', ans: 'false', hint: 'The opposite is "never".' },
+            { type: 'tf', q: '26. "Women" is the plural form of "woman".', ans: 'true' },
+            { type: 'tf', q: '27. It is correct to say "a hour".', ans: 'false', hint: 'The "h" is silent, so we say "an hour".' },
+            { type: 'tf', q: '28. The verb "Can" is followed by a verb with "to" (e.g., I can to go).', ans: 'false', hint: 'Can is followed by the base verb (I can go).' },
+            { type: 'tf', q: '29. "Water boils at 100 degrees" is an example of the Present Simple tense for facts.', ans: 'true' },
+            { type: 'tf', q: '30. "Beautiful" is an adverb.', ans: 'false', hint: 'It is an adjective. The adverb is "beautifully".' },
+
+            // أسئلة إكمال فراغ وكتابة (يجب كتابة الكلمة الصحيحة)
+            { type: 'fill', q: '31. The past tense of "speak" is _____.', ans: 'spoke' },
+            { type: 'fill', q: '32. I wake up _____ 7 o\'clock.', ans: 'at' },
+            { type: 'fill', q: '33. She was born _____ October.', ans: 'in' },
+            { type: 'fill', q: '34. My birthday is _____ the 5th of May.', ans: 'on' },
+            { type: 'fill', q: '35. The plural of "foot" is _____.', ans: 'feet' },
+            { type: 'fill', q: '36. The past tense of "catch" is _____.', ans: 'caught' },
+            { type: 'fill', q: '37. What is the opposite of "hot"?', ans: 'cold' },
+            { type: 'fill', q: '38. The comparative form of "good" is _____.', ans: 'better' },
+            { type: 'fill', q: '39. The superlative form of "bad" is the _____.', ans: 'worst' },
+            { type: 'fill', q: '40. I am thirsty. Can I have _____ water, please?', ans: 'some' },
+            { type: 'fill', q: '41. Do you want _____ apple? (Write a or an)', ans: 'an' },
+            { type: 'fill', q: '42. He _____ playing football right now. (Verb to be)', ans: 'is' },
+            { type: 'fill', q: '43. They _____ not like pizza. (Auxiliary verb)', ans: 'do' },
+            { type: 'fill', q: '44. She has been living here _____ 2010.', ans: 'since' },
+            { type: 'fill', q: '45. I have worked here _____ five years.', ans: 'for' },
+            { type: 'fill', q: '46. The past participle (V3) of "write" is _____.', ans: 'written' },
+            { type: 'fill', q: '47. A person who teaches is called a _____.', ans: 'teacher' },
+            { type: 'fill', q: '48. A place where you read and borrow books is a _____.', ans: 'library' },
+            { type: 'fill', q: '49. The opposite of "expensive" is _____.', ans: 'cheap' },
+            { type: 'fill', q: '50. The past tense of "fly" is _____.', ans: 'flew' }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('question-screen').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            answered = false;
+            const q = questions[currentQuestion];
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('question-counter').innerText = `سؤال ${currentQuestion + 1} من ${questions.length}`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestion) / questions.length) * 100}%`;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            document.getElementById('feedback').classList.add('hidden');
+            
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.add('hidden');
+            nextBtn.disabled = true;
+            nextBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            nextBtn.classList.add('bg-gray-400');
+
+            if (q.type === 'mcq') {
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.innerText = opt;
+                    btn.className = 'w-full text-left bg-gray-50 hover:bg-blue-100 border-2 border-gray-200 p-4 rounded-lg font-semibold transition duration-200';
+                    btn.onclick = () => checkAnswer(opt, btn);
+                    optionsContainer.appendChild(btn);
+                });
+            } else if (q.type === 'tf') {
+                const trueBtn = document.createElement('button');
+                trueBtn.innerText = 'True (صح)';
+                trueBtn.className = 'w-full text-left bg-gray-50 hover:bg-blue-100 border-2 border-gray-200 p-4 rounded-lg font-semibold transition duration-200';
+                trueBtn.onclick = () => checkAnswer('true', trueBtn);
+                
+                const falseBtn = document.createElement('button');
+                falseBtn.innerText = 'False (خطأ)';
+                falseBtn.className = 'w-full text-left bg-gray-50 hover:bg-blue-100 border-2 border-gray-200 p-4 rounded-lg font-semibold transition duration-200';
+                falseBtn.onclick = () => checkAnswer('false', falseBtn);
+
+                optionsContainer.appendChild(trueBtn);
+                optionsContainer.appendChild(falseBtn);
+            } else if (q.type === 'fill') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Type your answer here...';
+                input.className = 'w-full bg-white border-2 border-gray-300 p-4 rounded-lg font-semibold text-lg focus:outline-none focus:border-blue-500';
+                input.id = 'fill-input';
+                
+                const submitBtn = document.createElement('button');
+                submitBtn.innerText = 'تأكيد الإجابة';
+                submitBtn.className = 'mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200';
+                submitBtn.onclick = () => checkAnswer(document.getElementById('fill-input').value.trim().toLowerCase(), submitBtn);
+
+                // دعم الضغط على زر Enter
+                input.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') submitBtn.click();
+                });
+
+                optionsContainer.appendChild(input);
+                optionsContainer.appendChild(submitBtn);
+                // تركيز المؤشر تلقائياً في الحقل
+                setTimeout(() => input.focus(), 100);
+            }
+        }
+
+        function checkAnswer(userAnswer, element) {
+            if (answered) return;
+            answered = true;
+            
+            const q = questions[currentQuestion];
+            const isCorrect = userAnswer.toLowerCase() === q.ans.toLowerCase();
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('hidden');
+
+            // تجميد الأزرار/المدخلات
+            const allElements = document.getElementById('options-container').children;
+            for(let el of allElements) {
+                el.disabled = true;
+                el.classList.add('opacity-70');
+            }
+
+            if (isCorrect) {
+                score++;
+                document.getElementById('score-counter').innerText = `النقاط: ${score}`;
+                feedback.innerText = 'إجابة صحيحة! 👏';
+                feedback.className = 'mt-4 font-bold text-lg text-center text-green-600';
+                if(q.type !== 'fill') {
+                    element.classList.remove('bg-gray-50', 'border-gray-200');
+                    element.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                }
+            } else {
+                let correctAnswerText = q.ans;
+                if(q.type === 'tf') correctAnswerText = q.ans === 'true' ? 'True' : 'False';
+                
+                let extraHint = q.hint ? ` (${q.hint})` : '';
+                feedback.innerText = `إجابة خاطئة ❌ - الإجابة الصحيحة هي: ${correctAnswerText}${extraHint}`;
+                feedback.className = 'mt-4 font-bold text-lg text-center text-red-600';
+                if(q.type !== 'fill') {
+                    element.classList.remove('bg-gray-50', 'border-gray-200');
+                    element.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                }
+            }
+
+            // تفعيل زر السؤال التالي
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.remove('hidden', 'bg-gray-400');
+            nextBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            nextBtn.disabled = false;
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('question-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+
+            const percentage = (score / questions.length) * 100;
+            const messageEl = document.getElementById('result-message');
+            
+            if (percentage >= 90) {
+                messageEl.innerText = 'ممتاز جداً! مستواك رائع في اللغة الإنجليزية. 🏆';
+                messageEl.className = 'text-lg font-medium mb-8 text-green-600';
+            } else if (percentage >= 70) {
+                messageEl.innerText = 'جيد جداً! لديك أساس قوي وتستطيع التحسن أكثر. 👍';
+                messageEl.className = 'text-lg font-medium mb-8 text-blue-600';
+            } else if (percentage >= 50) {
+                messageEl.innerText = 'مقبول. تحتاج إلى مراجعة بعض القواعد والمفردات. 📚';
+                messageEl.className = 'text-lg font-medium mb-8 text-yellow-600';
+            } else {
+                messageEl.innerText = 'لا بأس، حاول دراسة الأساسيات مرة أخرى وأعد الاختبار. 💪';
+                messageEl.className = 'text-lg font-medium mb-8 text-red-600';
+            }
+        }
+    </script>
+</body>
+</html>
